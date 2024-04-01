@@ -27,6 +27,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDA6oK4Nf4KfPAhwYLnVZZIOjOITkWfNRhtpik9i1hT
     firewall  = false
     link_down = false
     model     = "virtio"
+    macaddr = each.value["macaddr"]
 
   }
   disks {
@@ -70,7 +71,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDA6oK4Nf4KfPAhwYLnVZZIOjOITkWfNRhtpik9i1hT
     firewall  = false
     link_down = false
     model     = "virtio"
-
+    macaddr = each.value["macaddr"]
   }
   disks {
     scsi {
@@ -113,7 +114,7 @@ resource "proxmox_vm_qemu" "pve_kubernetes_nodes" {
     firewall  = false
     link_down = false
     model     = "virtio"
-
+    macaddr = each.value["macaddr"]
   }
   disks {
 
