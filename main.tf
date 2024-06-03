@@ -23,11 +23,11 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDA6oK4Nf4KfPAhwYLnVZZIOjOITkWfNRhtpik9i1hT
 
 
   network {
-    bridge    = "vmbr0"
+    bridge    = "k3s"
     firewall  = false
     link_down = false
     model     = "virtio"
-    tag       = 20
+    macaddr = each.value["macaddr"]
 
   }
   disks {
@@ -67,12 +67,11 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDA6oK4Nf4KfPAhwYLnVZZIOjOITkWfNRhtpik9i1hT
   EOF
 
   network {
-    bridge    = "vmbr0"
+    bridge    = "k3s"
     firewall  = false
     link_down = false
     model     = "virtio"
-    tag       = 20
-
+    macaddr = each.value["macaddr"]
   }
   disks {
     scsi {
@@ -111,12 +110,11 @@ resource "proxmox_vm_qemu" "pve_kubernetes_nodes" {
   EOF
 
   network {
-    bridge    = "vmbr0"
+    bridge    = "k3s"
     firewall  = false
     link_down = false
     model     = "virtio"
-    tag       = 20
-
+    macaddr = each.value["macaddr"]
   }
   disks {
 
