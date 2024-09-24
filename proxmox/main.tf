@@ -1,5 +1,7 @@
 # Create Proxmox VMs
-
+locals {
+  sshkeys = 
+}
 resource "proxmox_vm_qemu" "pvc_kubernetes_nodes" {
   for_each = var.pvc_node_configs
 
