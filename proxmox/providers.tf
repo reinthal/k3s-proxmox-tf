@@ -9,12 +9,16 @@ terraform {
 
 # Define the Proxmox provider
 provider "proxmox" {
+# This is the url to the proxmox environment, 8006 is the default port that the proxmox web interface runs on, the rest (/api2/json) is the service path
+  pm_api_url = "https://pve.reinthal.me:8006/api2/json"
 
-  pm_api_url          = var.proxmox_api_url
-  pm_api_token_id     = var.proxmox_api_token_id
-  pm_api_token_secret = var.proxmox_api_token_secret
+# This turns on debugging
+  pm_debug = true
 
-  # (Optional) Skip TLS Verification
+# Use this if your sever does not have https encryption
   pm_tls_insecure = true
 
+# This is the API Token information we got before when we configured Proxmox. pm_api_token_id is the full token name from Proxmox. pm_api_token_secret is the token value from Proxmox.
+  pm_api_token_id="tofuman@pve!killertofu"
+  pm_api_token_secret=var.proxmox_api_token_secret
 }
