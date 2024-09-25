@@ -2,6 +2,14 @@
 # ---
 # Packer Template to create an Ubuntu Server (jammy) on Proxmox
 
+packer {
+  required_plugins {
+    name = {
+      version = "~> 1"
+      source  = "github.com/hashicorp/proxmox"
+    }
+  }
+}
 
 
 # Resource Definiation for the VM Template
