@@ -15,7 +15,7 @@ resource "proxmox_virtual_environment_file" "cloud_config" {
     #cloud-config
     users:
       - default
-      - name: ubuntu
+      - name: kog
         groups:
           - sudo
         shell: /bin/bash
