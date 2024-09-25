@@ -25,4 +25,5 @@ autoinstall:
         lock-passwd: false
         sudo: ALL=(ALL) NOPASSWD:ALL
         shell: /bin/bash
-        
+        ssh_authorized_keys:
+          - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICB7HBNzEIJjBgUIGwyxFXyMQl8Xv2MOD/KlC7FuGcPV kog@k3s
