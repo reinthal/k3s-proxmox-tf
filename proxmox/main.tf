@@ -60,6 +60,7 @@ resource "proxmox_virtual_environment_vm" "k3s" {
 
   initialization {
     datastore_id = each.value["datastore"]
+    user_data_file_id = proxmox_virtual_environment_file.cloud_config.id
     ip_config {
       ipv4 {
         address = "dhcp"
@@ -82,7 +83,7 @@ resource "proxmox_virtual_environment_vm" "k3s" {
     size         = each.value["hard_drive"]
   }
 
-  user_data_file_id = proxmox_virtual_environment_file.cloud_config.id
+  
 
   network_device {
     mac_address = each.value["mac_address"]
