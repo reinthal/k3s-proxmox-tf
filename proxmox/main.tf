@@ -1,7 +1,7 @@
 # Create Proxmox VMs
 
 data "local_file" "ssh_public_key" {
-  filename = "./keys/vm.pub"
+  filename = "./keys/kog@k3s.pub"
 }
 
 resource "proxmox_virtual_environment_file" "cloud_config" {
