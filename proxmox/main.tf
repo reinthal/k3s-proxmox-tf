@@ -49,7 +49,10 @@ resource "proxmox_virtual_environment_vm" "k3s" {
   node_name = each.value["node"]
   vm_id     = each.value["vm_id"]
   tags = ["k3s"]
-
+ agent {
+    # read 'Qemu guest agent' section, change to true only when ready
+    enabled = true
+  }
   cpu {
     cores = each.value["cores"]
   }
