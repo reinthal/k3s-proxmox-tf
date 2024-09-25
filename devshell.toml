@@ -27,7 +27,8 @@ motd = '''
 $(type -p menu &>/dev/null && menu)
 '''
 packages = [
-  "opentofu"
+  "opentofu",
+  "packer"
 ]
 
 
