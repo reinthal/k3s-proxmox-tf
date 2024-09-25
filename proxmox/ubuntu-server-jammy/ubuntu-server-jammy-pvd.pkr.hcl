@@ -2,7 +2,18 @@
 # ---
 # Packer Template to create an Ubuntu Server (jammy) on Proxmox
 
+variable proxmox_api_url {
+    type = string
+}
 
+variable proxmox_api_token_id {
+    type = string
+}
+
+variable proxmox_api_token_secret {
+    type = string
+    sensitive = true
+}
 
 # Resource Definiation for the VM Template
 source "proxmox-iso" "ubuntu-server-jammy-pvd" {
