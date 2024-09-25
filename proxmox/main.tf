@@ -5,21 +5,24 @@ data "local_file" "ssh_public_key" {
 }
 
 resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_image" {
+  for_each = to_set(["pve", "pvd", "pvc"])
   content_type = "iso"
   datastore_id = "local"
-  node_name    = "pve"
+  node_name    = each.value
   url          = "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
 }
 
-resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
-  name      = "test-ubuntu"
-  node_name = "pve"
+resource "proxmox_virtual_environment_vm" "k3s" {
+  for_each = var.pvc_node_configs
+  name                    = each.key
+  node_name = each.value["node"]
+  vm_id     = each.value["vm_id"]
 
   initialization {
 
     ip_config {
       ipv4 {
-        address = "10.22.12.10/24"
+        address = each.value["address"]
         gateway = "10.22.12.1"
       }
     }
@@ -31,8 +34,8 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
   }
 
   disk {
-    datastore_id = "local-lvm"
-    file_id      = proxmox_virtual_environment_download_file.ubuntu_cloud_image.id
+    datastore_id = each.value["datastore"]
+    file_id      = proxmox_virtual_environment_download_file.ubuntu_cloud_image[each.value["node"]].id
     interface    = "virtio0"
     iothread     = true
     discard      = "on"
@@ -40,7 +43,7 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
   }
 
   network_device {
-    bridge = "dev"
+    bridge = each.value["bridge"]
   }
 }
 
