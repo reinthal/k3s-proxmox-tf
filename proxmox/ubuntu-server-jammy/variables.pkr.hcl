@@ -13,8 +13,8 @@ variable proxmox_api_token_secret {
 }
 variable node_configs {
     default = {
-        "pve" = {storage_pool = "local-lvm", pool_type = "lvm" vm_id = 9100}, 
-        "pvd" = {storage_pool = "local-zfs", pool_type = "zfs" vm_id = 9100}, 
-        "pvc": { storage_pool =  "local-zfs", pool_type = "zfs" vm_id = 9300}
+        "pve" = {storage_pool = "local-lvm", pool_type = "lvm", vm_id = 9100}, 
+        "pvd" = {storage_pool = "local-zfs", pool_type = "zfs", vm_id = 9100}, 
+        "pvc" = {storage_pool = "local-zfs", pool_type = "zfs", vm_id = 9300}
     }
 }
