@@ -14,9 +14,10 @@ provider "proxmox" {
   api_token = var.proxmox_api_token
   # because self-signed TLS certificate is in use
   insecure = true
-  #ssh {
-  ##  agent = true
-   # username = var.proxmox_ssh_username
-  #}
+
+  ssh {
+    agent = true
+    username = var.proxmox_username
+  }
 
 }

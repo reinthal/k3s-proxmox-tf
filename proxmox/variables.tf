@@ -1,10 +1,11 @@
 variable proxmox_endpoint {
   type = string
 }
-variable proxmox_ssh_username {
+variable proxmox_api_token {
   type = string
 }
-variable proxmox_api_token {
+
+variable proxmox_username {
   type = string
 }
 
