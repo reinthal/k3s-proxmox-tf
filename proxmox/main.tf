@@ -1,5 +1,50 @@
 # Create Proxmox VMs
 
+data "local_file" "ssh_public_key" {
+  filename = "./keys/openpgp.pub"
+}
+
+resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_image" {
+  content_type = "iso"
+  datastore_id = "local"
+  node_name    = "pve"
+  url = "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
+}
+
+resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
+  name      = "test-ubuntu"
+  node_name = "pve"
+
+  initialization {
+
+    ip_config {
+      ipv4 {
+        address = "10.22.12.10/24"
+        gateway = "10.22.12.1"
+      }
+    }
+
+    user_account {
+      username = "kog"
+      keys     = [trimspace(data.local_file.ssh_public_key.content)]
+    }
+  }
+
+  disk {
+    datastore_id = "local-zfs"
+    file_id      = proxmox_virtual_environment_download_file.ubuntu_cloud_image.id
+    interface    = "virtio0"
+    iothread     = true
+    discard      = "on"
+    size         = 20
+  }
+
+  network_device {
+    bridge = "dev"
+  }
+}
+
+/**
 resource "proxmox_vm_qemu" "pvc_kubernetes_nodes" {
   for_each = var.pvc_node_configs
 
@@ -118,3 +163,5 @@ resource "proxmox_vm_qemu" "pve_kubernetes_nodes" {
     }
   }
 }
+
+*/
