@@ -17,26 +17,28 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDG2HQMrYddPMA9CnLIPH4b0Iasg5LkQDW/BNR8wGsb
 }
 
 # Define variables for the VM configurations
-variable "pvc_node_configs" {
+variable "node_configs" {
   default = {
-    "pvc-server-1" = { vm_id = 2002, cores = 4, ram = 4096, hard_drive = 50, address = "10.22.20.2/24" }
-    "pvc-agent-1"  = { vm_id = 2003, cores = 12, ram = 8096, hard_drive = 100, address = "10.22.20.3/24" }
-    "pvc-agent-2" = { vm_id = 2004, cores = 12, ram = 8096, hard_drive = 100 address = "10.22.20.4/24" }
+    "pvc-server-1" = { datastore = "local-zfs", node = "pvc", vm_id = 2002, cores = 4, ram = 4096, hard_drive = 50, address = "10.22.20.2/24", bridge = "k3s" }
+    #"pvc-agent-1"  = { datastore = "local-zfs", node = "pvc", vm_id = 2003, cores = 12, ram = 8096, hard_drive = 100, address = "10.22.20.3/24", bridge = "k3s" }
+    #"pvc-agent-2" = { datastore = "local-zfs", node = "pvc", vm_id = 2004, cores = 12, ram = 8096, hard_drive = 100, address = "10.22.20.4/24", bridge = "k3s" }
+    #"pvd-server-2"  = { datastore = "local-zfs", node = "pvd", vm_id = 2005, cores = 4, ram = 4096, hard_drive = 100, address = "10.22.20.5/24", bridge = "k3s" }
+    #"pvd-agent-3"  = { datastore = "local-zfs", node = "pvd", vm_id = 2006, cores = 4, ram = 4096, hard_drive = 50, address = "10.22.20.6/24", bridge = "k3s" }
+    #"pve-server-3" = { datastore = "local-lvm", node = "pve", vm_id = 2007, cores = 4, ram = 4096, hard_drive = 50, address = "10.22.20.7/24", bridge = "k3s" }
+    #"pve-agent-4"  = { datastore = "local-lvm", node = "pve", vm_id = 2008, cores = 4, ram = 4096, hard_drive = 100, address = "10.22.20.8/24", bridge = "k3s" }
+    #"pve-agent-5"  = { datastore = "local-lvm", node = "pve", vm_id = 2009, cores = 4, ram = 8096, hard_drive = 100, address = "10.22.20.9/24", bridge = "k3s" }
   }
 }
 variable "pvd_node_configs" {
   default = {
-    "pvd-server-2"  = { vm_id = 2005, cores = 4, ram = 4096, hard_drive = 100, address = "10.22.20.5/24" }
-    "pvd-agent-3"  = { vm_id = 2006, cores = 4, ram = 4096, hard_drive = 50, address = "10.22.20.6/24" }
+    
     
   }
 }
 
 variable "pve_node_configs" {
   default = {
-    "pve-server-3" = { vm_id = 2007, cores = 4, ram = 4096, hard_drive = 50, address = "10.22.20.7/24" }
-    "pve-agent-4"  = { vm_id = 2008, cores = 4, ram = 4096, hard_drive = 100, address = "10.22.20.8/24" }
-    "pve-agent-5"  = { vm_id = 2009, cores = 4, ram = 8096, hard_drive = 100, address = "10.22.20.9/24" }
+    
   }
 
 }
