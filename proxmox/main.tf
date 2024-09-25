@@ -4,8 +4,38 @@ data "local_file" "ssh_public_key" {
   filename = "./keys/vm.pub"
 }
 
+resource "proxmox_virtual_environment_file" "cloud_config" {
+  content_type = "snippets"
+  datastore_id = "local"
+  node_name    = "pve"
+
+  source_raw {
+    data = <<-EOF
+    #cloud-config
+    users:
+      - default
+      - name: ubuntu
+        groups:
+          - sudo
+        shell: /bin/bash
+        ssh_authorized_keys:
+          - ${trimspace(data.local_file.ssh_public_key.content)}
+        sudo: ALL=(ALL) NOPASSWD:ALL
+    runcmd:
+        - apt update
+        - apt install -y qemu-guest-agent net-tools
+        - timedatectl set-timezone America/Toronto
+        - systemctl enable qemu-guest-agent
+        - systemctl start qemu-guest-agent
+        - echo "done" > /tmp/cloud-config.done
+    EOF
+
+    file_name = "cloud-config.yaml"
+  }
+}
+
 resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_image" {
-  for_each = to_set(["pve", "pvd", "pvc"])
+  for_each = toset(["pve", "pvd", "pvc"])
   content_type = "iso"
   datastore_id = "local"
   node_name    = each.value
@@ -13,17 +43,26 @@ resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_image" {
 }
 
 resource "proxmox_virtual_environment_vm" "k3s" {
-  for_each = var.pvc_node_configs
+  for_each = var.node_configs
   name                    = each.key
   node_name = each.value["node"]
   vm_id     = each.value["vm_id"]
+  tags = ["k3s"]
+
+  cpu {
+    cores = each.value["cores"]
+  }
+
+  memory {
+    dedicated = each.value["ram"]
+  }
+
 
   initialization {
-
+    datastore_id = each.value["datastore"]
     ip_config {
       ipv4 {
-        address = each.value["address"]
-        gateway = "10.22.12.1"
+        address = "dhcp"
       }
     }
 
@@ -37,12 +76,16 @@ resource "proxmox_virtual_environment_vm" "k3s" {
     datastore_id = each.value["datastore"]
     file_id      = proxmox_virtual_environment_download_file.ubuntu_cloud_image[each.value["node"]].id
     interface    = "virtio0"
+    cache    = "writeback"
     iothread     = true
     discard      = "on"
-    size         = 20
+    size         = each.value["hard_drive"]
   }
 
+  user_data_file_id = proxmox_virtual_environment_file.cloud_config.id
+
   network_device {
+    mac_address = each.value["mac_address"]
     bridge = each.value["bridge"]
   }
 }
