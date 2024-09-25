@@ -11,6 +11,7 @@ variable proxmox_api_token_secret {
     type = string
     sensitive = true
 }
+
 variable node_configs {
     default = {
         "pve" = {storage_pool = "local-lvm", pool_type = "lvm", vm_id = 9100}, 

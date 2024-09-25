@@ -2,19 +2,9 @@
 # ---
 # Packer Template to create an Ubuntu Server (jammy) on Proxmox
 
-packer {
-  required_plugins {
-    name = {
-      version = "~> 1"
-      source  = "github.com/hashicorp/proxmox"
-    }
-  }
-}
-
 
 # Resource Definiation for the VM Template
-source "proxmox-iso" "ubuntu-server-jammy" {
-    for_each = var.node_configs
+source "proxmox-iso" "ubuntu-server-jammy-pve" {
     # Proxmox Connection Settings
     proxmox_url = "${var.proxmox_api_url}"
     username = "${var.proxmox_api_token_id}"
@@ -23,8 +13,8 @@ source "proxmox-iso" "ubuntu-server-jammy" {
     # insecure_skip_tls_verify = true
     
     # VM General Settings
-    node = each.key
-    vm_id = "100"
+    node = "pve"
+    vm_id = "9300"
     vm_name = "ubuntu-server-jammy"
     template_description = "Ubuntu Server jammy Image"
 
@@ -33,8 +23,8 @@ source "proxmox-iso" "ubuntu-server-jammy" {
     # iso_file = "local:iso/ubuntu-22.04-live-server-amd64.iso"
     # - or -
     # (Option 2) Download ISO
-    iso_url = "https://releases.ubuntu.com/22.04/ubuntu-22.04-live-server-amd64.iso"
-    iso_checksum = "84aeaf7823c8c61baa0ae862d0a06b03409394800000b3235854a6b38eb4856f"
+    iso_url = "https://releases.ubuntu.com/22.04/ubuntu-22.04.5-live-server-amd64.iso"
+    iso_checksum = "9bc6028870aef3f74f4e16b900008179e78b130e6b0b9a140635434a46aa98b0"
     iso_storage_pool = "local"
     unmount_iso = true
 
@@ -47,8 +37,7 @@ source "proxmox-iso" "ubuntu-server-jammy" {
     disks {
         disk_size = "20G"
         format = "qcow2"
-        storage_pool = each.value["storage_pool"]
-        storage_pool_type = each.value["pool_type"]
+        storage_pool = "local-lvm"
         type = "virtio"
     }
 
@@ -67,7 +56,7 @@ source "proxmox-iso" "ubuntu-server-jammy" {
 
     # VM Cloud-Init Settings
     cloud_init = true
-    cloud_init_storage_pool = each.value["storage_pool"]
+    cloud_init_storage_pool = "local-lvm"
 
     # PACKER Boot Commands
     boot_command = [
@@ -88,13 +77,13 @@ source "proxmox-iso" "ubuntu-server-jammy" {
     # http_port_min = 8802
     # http_port_max = 8802
 
-    ssh_username = "your-user-name"
+    ssh_username = "kog"
 
     # (Option 1) Add your Password here
     # ssh_password = "your-password"
     # - or -
     # (Option 2) Add your Private SSH KEY file here
-    # ssh_private_key_file = "~/.ssh/id_rsa"
+    ssh_private_key_file = "~/.ssh/kog@k3s"
 
     # Raise the timeout, when installation takes longer
     ssh_timeout = "20m"
@@ -103,8 +92,8 @@ source "proxmox-iso" "ubuntu-server-jammy" {
 # Build Definition to create the VM Template
 build {
 
-    name = "ubuntu-server-jammy"
-    sources = ["proxmox-iso.ubuntu-server-jammy"]
+    name = "ubuntu-server-jammy-pve"
+    sources = ["proxmox-iso.ubuntu-server-jammy-pve"]
 
     # Provisioning the VM Template for Cloud-Init Integration in Proxmox #1
     provisioner "shell" {
