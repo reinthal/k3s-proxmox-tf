@@ -53,6 +53,11 @@ resource "proxmox_virtual_environment_vm" "k3s" {
     # read 'Qemu guest agent' section, change to true only when ready
     enabled = true
   }
+  clone {
+    datastore_id = each.value["datastore"]
+    vm_id = each.value["clone_id"]
+    retries = 3
+  }
   cpu {
     cores = each.value["cores"]
   }
