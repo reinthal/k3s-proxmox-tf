@@ -46,7 +46,7 @@ source "proxmox-iso" "ubuntu-server-jammy-pvc" {
 
     disks {
         disk_size = "20G"
-        format = "qcow2"
+        format = "raw"
         storage_pool = "local-zfs"
         type = "virtio"
     }
