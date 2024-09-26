@@ -5,14 +5,17 @@ data "local_file" "ssh_public_key" {
 }
 
 resource "proxmox_virtual_environment_file" "cloud_config" {
-  for_each = toset(["pve", "pvd", "pvc"])
+  for_each = var.node_configs
   content_type = "snippets"
   datastore_id = "local"
-  node_name    = each.value
+  node_name    = each.value["node"]
 
   source_raw {
     data = <<-EOF
     #cloud-config
+    hostname: ${each.key}
+    fqdn: ${each.key}.reinthal.me
+    manage_etc_hosts: true
     users:
       - default
       - name: kog
@@ -31,7 +34,7 @@ resource "proxmox_virtual_environment_file" "cloud_config" {
         - echo "done" > /tmp/cloud-config.done
     EOF
 
-    file_name = "cloud-config.yaml"
+    file_name = "${each.key}-cloud-config.yaml"
   }
 }
 
@@ -69,7 +72,7 @@ resource "proxmox_virtual_environment_vm" "k3s" {
 
   initialization {
     datastore_id = each.value["datastore"]
-    user_data_file_id = proxmox_virtual_environment_file.cloud_config[each.value["node"]].id
+    user_data_file_id = proxmox_virtual_environment_file.cloud_config[each.key].id
     ip_config {
       ipv4 {
         address = "dhcp"
@@ -84,7 +87,6 @@ resource "proxmox_virtual_environment_vm" "k3s" {
 
   disk {
     datastore_id = each.value["datastore"]
-    file_id      = proxmox_virtual_environment_download_file.ubuntu_cloud_image[each.value["node"]].id
     interface    = "virtio0"
     cache    = "writeback"
     iothread     = true
