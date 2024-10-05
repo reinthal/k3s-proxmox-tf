@@ -38,14 +38,6 @@ resource "proxmox_virtual_environment_file" "cloud_config" {
   }
 }
 
-resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_image" {
-  for_each = toset(["pve", "pvd", "pvc"])
-  content_type = "iso"
-  datastore_id = "local"
-  node_name    = each.value
-  url          = "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
-}
-
 resource "proxmox_virtual_environment_vm" "k3s" {
   for_each = var.node_configs
   name                    = each.key
