@@ -63,6 +63,7 @@ resource "proxmox_virtual_environment_vm" "k3s" {
   }
   cpu {
     cores = each.value["cores"]
+    type         = "x86-64-v2-AES"
   }
 
   memory {
