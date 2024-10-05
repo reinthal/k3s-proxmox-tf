@@ -1,10 +1,34 @@
 # https://numtide.github.io/devshell
+
+
 [[commands]]
-package = "hello"
+
+help = "Get Coffee ☕"
+name = "coffee"
+command = "echo '☕'"
+
+[[commands]]
+
+help = "Deploy 🔨"
+name = "deploy"
+
+command = '''
+echo "Deploying 🔨"
+echo "Current socket: $SSH_AUTH_SOCK"
+REPO_ROOT=$(git rev-parse --show-toplevel)
+tofu -chdir="$REPO_ROOT/proxmox/" init
+tofu -chdir="$REPO_ROOT/proxmox/" apply
+'''
+  
 
 [devshell]
+motd = '''
+{bold}{14} 🍲 Welcome to reinthal's Proxmox Tofu Shell! 🍲 {reset}
+$(type -p menu &>/dev/null && menu)
+'''
 packages = [
-  "opentofu", # 3.11
+  "opentofu",
+  "packer"
 ]
 
 

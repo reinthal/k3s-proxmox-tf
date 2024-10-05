@@ -1,3 +1,5 @@
 .terraform*
+*.plan
 credentials*
 terraform.tfstate*
+terraform.vars

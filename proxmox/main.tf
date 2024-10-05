@@ -1,120 +1,103 @@
 # Create Proxmox VMs
 
-resource "proxmox_vm_qemu" "pvc_kubernetes_nodes" {
-  for_each = var.pvc_node_configs
+data "local_file" "ssh_public_key" {
+  filename = "./keys/kog@k3s.pub"
+}
 
-  name                    = each.key
-  vmid                    = each.value["vm_id"]
-  target_node             = "pvc"                # Change to the desired Proxmox node
-  clone                   = "ubuntu-22-04-jammy" # Change to the name of the template or VM to clone from
-  cores                   = each.value["cores"]
-  memory                  = each.value["ram"]
-  scsihw                  = "virtio-scsi-single"
-  tags                    = "k3s"
-  os_type                 = "cloud-init"
-  ipconfig0               = "ip=dhcp,ip6=dhcp"
-  cloudinit_cdrom_storage = "local-zfs"
-  ssh_user                = "kog"
-  sshkeys                 = var.ssh_keys
+resource "proxmox_virtual_environment_file" "cloud_config" {
+  for_each = var.node_configs
+  content_type = "snippets"
+  datastore_id = "local"
+  node_name    = each.value["node"]
 
-  network {
-    bridge    = "k3s"
-    firewall  = false
-    link_down = false
-    model     = "virtio"
-    macaddr = each.value["macaddr"]
+  source_raw {
+    data = <<-EOF
+    #cloud-config
+    hostname: ${each.key}
+    fqdn: ${each.key}.reinthal.me
+    manage_etc_hosts: true
+    users:
+      - default
+      - name: kog
+        groups:
+          - sudo
+        shell: /bin/bash
+        ssh_authorized_keys:
+          - ${trimspace(data.local_file.ssh_public_key.content)}
+        sudo: ALL=(ALL) NOPASSWD:ALL
+    runcmd:
+        - apt update
+        - apt install -y qemu-guest-agent net-tools
+        - timedatectl set-timezone Europe/Stockholm
+        - systemctl enable qemu-guest-agent
+        - systemctl start qemu-guest-agent
+        - echo "done" > /tmp/cloud-config.done
+    EOF
 
-  }
-  disks {
-    scsi {
-      scsi0 {
-        disk {
-          cache    = "writeback"
-          size     = each.value["hard_drive"]
-          backup   = true
-          storage  = "local-zfs"
-          iothread = true
-        }
-
-      }
-    }
+    file_name = "${each.key}-cloud-config.yaml"
   }
 }
-resource "proxmox_vm_qemu" "pvd_kubernetes_nodes" {
-  for_each = var.pvd_node_configs
 
-  name                    = each.key
-  vmid                    = each.value["vm_id"]
-  target_node             = "pvd"                # Change to the desired Proxmox node
-  clone                   = "ubuntu-22-04-jammy" # Change to the name of the template or VM to clone from
-  cores                   = each.value["cores"]
-  memory                  = each.value["ram"]
-  scsihw                  = "virtio-scsi-single"
-  tags                    = "k3s"
-  os_type                 = "cloud-init"
-  ipconfig0               = "ip=dhcp,ip6=dhcp"
-  cloudinit_cdrom_storage = "local-zfs"
-  ssh_user                = "kog"
-  sshkeys                 = var.ssh_keys
-  network {
-    bridge    = "k3s"
-    firewall  = false
-    link_down = false
-    model     = "virtio"
-    macaddr = each.value["macaddr"]
-  }
-  disks {
-    scsi {
-      scsi0 {
-        disk {
-          cache    = "writeback"
-          size     = each.value["hard_drive"]
-          backup   = true
-          storage  = "local-zfs"
-          iothread = true
-        }
-
-      }
-    }
-  }
+resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_image" {
+  for_each = toset(["pve", "pvd", "pvc"])
+  content_type = "iso"
+  datastore_id = "local"
+  node_name    = each.value
+  url          = "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
 }
-resource "proxmox_vm_qemu" "pve_kubernetes_nodes" {
-  for_each = var.pve_node_configs
 
+resource "proxmox_virtual_environment_vm" "k3s" {
+  for_each = var.node_configs
   name                    = each.key
-  vmid                    = each.value["vm_id"]
-  target_node             = "pve"                # Change to the desired Proxmox node
-  clone                   = "ubuntu-22-04-jammy" # Change to the name of the template or VM to clone from
-  cores                   = each.value["cores"]
-  memory                  = each.value["ram"]
-  scsihw                  = "virtio-scsi-single"
-  tags                    = "k3s"
-  os_type                 = "cloud-init"
-  ipconfig0               = "ip=dhcp,ip6=dhcp"
-  cloudinit_cdrom_storage = "old-lvm"
-  ssh_user                = "kog"
-  sshkeys                 = var.ssh_keys
-
-  network {
-    bridge    = "k3s"
-    firewall  = false
-    link_down = false
-    model     = "virtio"
-    macaddr = each.value["macaddr"]
+  node_name = each.value["node"]
+  vm_id     = each.value["vm_id"]
+  tags = ["k3s"]
+ agent {
+    # read 'Qemu guest agent' section, change to true only when ready
+    enabled = true
   }
-  disks {
+  clone {
+    datastore_id = each.value["datastore"]
+    vm_id = each.value["clone_id"]
+    retries = 3
+  }
+  cpu {
+    cores = each.value["cores"]
+  }
 
-    scsi {
-      scsi0 {
-        disk {
-          cache    = "writeback"
-          size     = each.value["hard_drive"]
-          backup   = true
-          storage  = "old-lvm"
-          iothread = true
-        }
+  memory {
+    dedicated = each.value["ram"]
+  }
 
+
+  initialization {
+    datastore_id = each.value["datastore"]
+    user_data_file_id = proxmox_virtual_environment_file.cloud_config[each.key].id
+    ip_config {
+      ipv4 {
+        address = "dhcp"
       }
     }
+
+    user_account {
+      username = "kog"
+      keys     = [trimspace(data.local_file.ssh_public_key.content)]
+    }
+  }
+
+  disk {
+    datastore_id = each.value["datastore"]
+    interface    = "virtio0"
+    cache    = "writeback"
+    iothread     = true
+    discard      = "on"
+    size         = each.value["hard_drive"]
+  }
+
+  
+
+  network_device {
+    mac_address = each.value["mac_address"]
+    bridge = each.value["bridge"]
   }
 }

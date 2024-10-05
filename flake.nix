@@ -22,13 +22,13 @@
       devShells.default = let
         pkgs = import nixpkgs {
           inherit system;
-
+          config.allowUnfree = true;
           overlays = [devshell.overlays.default];
         };
       in
         pkgs.devshell.mkShell {
           imports = [
-            (pkgs.devshell.importTOML ./devshell.toml)
+            (pkgs.devshell.importTOML ./devshell.toml )
           ];
         };
     });
